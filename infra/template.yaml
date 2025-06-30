@@ -1,0 +1,201 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  TsunaguApp
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 10
+    Handler: app.lambda_handler
+    Runtime: python3.13
+    LoggingConfig:
+      LogFormat: JSON
+    # 共通の環境変数をここに定義
+    Environment:
+      Variables:
+        POSTS_TABLE_NAME: !Ref PostsTable
+        USER_POOL_ID: !Ref TsunaguUserPool
+
+Resources:
+  # Cognito
+  # 論理ID: TsunaguUserPool
+  # サービス: Cognito
+  # 説明: Cognito User Pool
+  TsunaguUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: TsunaguUserPool
+      UsernameAttributes:
+        - email
+  
+  # 論理ID: TsunaguUserPoolDomain
+  # サービス: Cognito
+  # 説明: Cognitoのドメイン設定
+  TsunaguUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub "tsunagu-app-${AWS::AccountId}"
+      UserPoolId: !Ref TsunaguUserPool
+  
+  # 論理ID: TsunaguGoogleIdP
+  # サービス: Cognito
+  # 説明: Cognitoのプロバイダー設定
+  TsunaguGoogleIdP:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      ProviderName: Google
+      ProviderType: Google
+      UserPoolId: !Ref TsunaguUserPool
+      ProviderDetails:
+        client_id: "{{resolve:secretsmanager:TsunaguGoogleSecrets:SecretString:google-client-id}}"
+        client_secret: "{{resolve:secretsmanager:TsunaguGoogleSecrets:SecretString:google-client-secret}}"
+        authorize_scopes: "profile email openid"
+      AttributeMapping:
+        email: "email"
+        username: "sub"
+        name: "name"
+
+  # 論理ID: TsunaguUserPoolClient
+  # サービス: Cognito
+  # 説明: Cognito User Pool Client
+  TsunaguUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    DependsOn: TsunaguGoogleIdP
+    Properties:
+      UserPoolId: !Ref TsunaguUserPool
+      ClientName: TsunaguWebClient
+      GenerateSecret: false
+      SupportedIdentityProviders:
+        - COGNITO
+        - Google
+      CallbackURLs:
+        - http://localhost:3000
+      LogoutURLs:
+        - http://localhost:3000
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+      AllowedOAuthFlowsUserPoolClient: true
+
+  # DynamoDB
+  # 論理ID: PostsTable
+  # サービス: DynamoDB
+  # 説明: 投稿情報格納用データベース
+  PostsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Posts
+      BillingMode: 'PAY_PER_REQUEST'
+      AttributeDefinitions:
+        - AttributeName: postId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: postId
+          KeyType: HASH
+  
+  # API Gateway
+  # 論理ID: TsunaguApiGateway
+  # サービス: API Gateway
+  # 説明: 
+  TsunaguApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Dev
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: TsunaguApiAuthorizer
+        Authorizers:
+          TsunaguApiAuthorizer:
+            FunctionArn: !GetAtt ApiAuthorizerFunction.Arn
+            Identity:
+              Headers:
+                - Authorization
+
+  # Lambda
+  # 論理ID: ApiAuthorizerFunction
+  # Service: Lambda
+  # 説明: 認証用関数
+  ApiAuthorizerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/authorizer/
+
+  # 論理ID: HelloWorldFunction
+  # サービス: Lambda
+  # 説明: 疎通確認用関数
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/hello_world/
+      Architectures:
+        - x86_64
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TsunaguApiGateway
+            Path: /ping
+            Method: get
+            Auth:
+              Authorizer: NONE
+
+  # 論理ID: GetPostsFunction
+  # サービス: Lambda
+  # 説明: 投稿一覧取得用関数
+  GetPostsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/getPosts/
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref PostsTable
+      Events:
+        GetPosts:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TsunaguApiGateway
+            Path: /posts
+            Method: get
+
+  # 論理ID: CreatePostsFunction
+  # サービス: Lambda
+  # 説明: 投稿作成用関数
+  CreatePostsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/createPosts/
+      Architectures:
+        - x86_64
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PostsTable
+      Events:
+        CreatePosts:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TsunaguApiGateway
+            Path: /posts
+            Method: post
+            # Authの記述がないため、デフォルトのTsunaguApiAuthorizerが適用される
+
+Outputs:
+  TsunaguApiEndpoint:
+    Description: "API Gateway endpoint URL for Dev stage"
+    Value: !Sub "https://${TsunaguApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Dev"
+  
+  TsunaguUserPoolId:
+    Description: "Cognito User Pool ID"
+    Value: !Ref TsunaguUserPool
+
+  TsunaguUserPoolClientId:
+    Description: "Cognito User Pool Client ID"
+    Value: !Ref TsunaguUserPoolClient

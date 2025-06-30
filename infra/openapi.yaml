@@ -1,0 +1,116 @@
+# OpenAPIのバージョンを指定
+openapi: 3.0.1
+# APIの基本情報を記述
+info:
+  title: 'Tsunagu API'
+  description: '社内情報共有アプリ Tsunagu のためのAPI仕様書'
+  version: '1.0.0'
+
+# APIのパス（エンドポイント）を定義
+paths:
+  /ping:
+    get:
+      summary: '疎通確認用のエンドポイント'
+      description: 'APIが正常に稼働しているかを確認します。'
+      responses:
+        '200':
+          description: '成功レスポンス'
+          content:
+            application/json:
+              schema:
+                type: string
+                example: 'hello world'
+
+  # /posts パス
+  /posts:
+    # GETメソッドの定義 (投稿一覧取得)
+    # こちらには security の記述がないため、誰でもアクセス可能
+    get:
+      summary: '投稿一覧の取得'
+      description: 'すべての投稿を一覧で取得します。'
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: '成功。投稿の配列を返します。'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+    # POSTメソッドの定義 (新規投稿作成)
+    post:
+      summary: '新規投稿の作成'
+      description: '新しい投稿を作成します。'
+      # --- 追加ここから ---
+      # このAPIは "BearerAuth" という名前の認証を必要とします
+      security:
+        - BearerAuth: []
+      # --- 追加ここまで ---
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePostInput'
+      responses:
+        '201':
+          description: '作成された投稿'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+
+# 共通で利用するコンポーネントを定義
+components:
+  # セキュリティースキーム（認証方式）の定義
+  securitySchemes:
+    # "BearerAuth" という名前で認証方式を定義（この名前は任意）
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Cognitoから取得したJWTをここに指定します。リクエストヘッダーには 'Authorization: Bearer <TOKEN>' の形式で含めます。"
+  schemas:
+    # 投稿オブジェクトのモデル
+    Post:
+      type: object
+      properties:
+        postId:
+          type: string
+          example: 'a1b2c3d4-e5f6-7890-1234-567890abcdef'
+        title:
+          type: string
+          example: '最初の投稿です！'
+        content:
+          type: string
+          example: 'これからTsunaguで情報共有していきます！'
+        authorId:
+          type: string
+          example: 'cognito-user-id-12345'
+        authorName:
+          type: string
+          example: '大阪 太郎'
+        createdAt:
+          type: string
+          format: date-time
+          example: '2025-06-27T18:30:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2025-06-27T18:30:00Z'
+    # 新規投稿作成時のリクエストボディのモデル
+    CreatePostInput:
+      type: object
+      properties:
+        title:
+          type: string
+          example: '新しい投稿のタイトル'
+        content:
+          type: string
+          example: '新しい投稿の内容'
+      required:
+        - title
+        - content
+
