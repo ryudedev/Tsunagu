@@ -70,9 +70,9 @@ Resources:
         - COGNITO
         - Google
       CallbackURLs:
-        - http://localhost:3000
+        - http://localhost:3000/auth/callback
       LogoutURLs:
-        - http://localhost:3000
+        - http://localhost:3000/login
       AllowedOAuthFlows:
         - code
       AllowedOAuthScopes:
