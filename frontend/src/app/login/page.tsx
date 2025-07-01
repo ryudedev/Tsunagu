@@ -20,13 +20,13 @@ Amplify.configure({
   Auth: {
     Cognito: {
       userPoolId: userPoolId,
-      userPoolClientId: userPoolClientId, // userPoolClientId -> userPoolWebClientId
+      userPoolClientId: userPoolClientId,
       loginWith: {
         oauth: {
           domain: cognitoDomain,
           scopes: ['openid', 'email', 'profile'],
           // Cognito側の設定と完全に一致させる
-          redirectSignIn: [`${appUrl}/auth/callback`],
+          redirectSignIn: [`${appUrl}/api/auth/callback`],
           redirectSignOut: [`${appUrl}/login`],
           responseType: 'code',
         },
@@ -34,8 +34,6 @@ Amplify.configure({
     },
   },
 }, { ssr: true });
-// --- 設定ここまで ---
-
 
 export default function FinalLoginPage() {
 
