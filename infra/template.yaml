@@ -3,6 +3,13 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   TsunaguApp
 
+# パラメータを追加してURLを柔軟に設定
+Parameters:
+  AppURL:
+    Type: String
+    Default: "http://localhost:3000"
+    Description: "The URL of the frontend application"
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
@@ -28,6 +35,19 @@ Resources:
       UserPoolName: TsunaguUserPool
       UsernameAttributes:
         - email
+      # ユーザープールの詳細設定を追加
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: false
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+      # アカウント回復設定
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
   
   # 論理ID: TsunaguUserPoolDomain
   # サービス: Cognito
@@ -70,20 +90,38 @@ Resources:
         - COGNITO
         - Google
       CallbackURLs:
-        - http://localhost:3000/api/auth/callback
-      LogoutURLs:
+        - !Sub "${AppURL}/auth/callback"
+        - "http://localhost:3000/auth/callback"  # 開発環境用
+        - !Sub "${AppURL}/login"
         - http://localhost:3000/login
+      LogoutURLs:
+        - !Sub "${AppURL}/login"
+        - "http://localhost:3000/login"  # 開発環境用
       AllowedOAuthFlows:
         - code
       AllowedOAuthScopes:
         - email
         - openid
         - profile
+        - aws.cognito.signin.user.admin
       AllowedOAuthFlowsUserPoolClient: true
+      # トークンの有効期限設定
+      RefreshTokenValidity: 30
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      TokenValidityUnits:
+        RefreshToken: days
+        AccessToken: minutes
+        IdToken: minutes
+      # その他の重要な設定
+      PreventUserExistenceErrors: ENABLED
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
 
   # DynamoDB
   # 論理ID: PostsTable
-  # サービス: DynamoDB
+  # サービス: Cognito
   # 説明: 投稿情報格納用データベース
   PostsTable:
     Type: AWS::DynamoDB::Table
@@ -199,3 +237,16 @@ Outputs:
   TsunaguUserPoolClientId:
     Description: "Cognito User Pool Client ID"
     Value: !Ref TsunaguUserPoolClient
+
+  TsunaguUserPoolDomain:
+    Description: "Cognito User Pool Domain"
+    Value: !Sub "https://tsunagu-app-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com"
+
+  # フロントエンド用の環境変数設定例
+  EnvironmentVariables:
+    Description: "Environment variables for frontend application"
+    Value: !Sub |
+      NEXT_PUBLIC_COGNITO_USER_POOL_ID=${TsunaguUserPool}
+      NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=${TsunaguUserPoolClient}
+      NEXT_PUBLIC_COGNITO_DOMAIN=tsunagu-app-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com
+      NEXT_PUBLIC_APP_URL=${AppURL}

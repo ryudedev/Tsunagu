@@ -21,6 +21,7 @@ s3_prefix = "TsunaguApp-template"
 region = "ap-northeast-1"
 image_repositories = []
 disable_rollback = true
+parameter_overrides = "AppURL=\"http://localhost:3000\""
 
 [default.package.parameters]
 resolve_s3 = true

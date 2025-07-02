@@ -10,7 +10,7 @@ export default function Header() {
   // これにより、サーバーとクライアントの初回描画が必ず一致します。
   if (isLoading) {
     return (
-      <header className="bg-white shadow-md">
+      <header className="">
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/" className="text-xl font-bold text-gray-800">Tsunagu</Link>
           <div className="w-24 h-8 bg-gray-200 rounded animate-pulse"></div>
@@ -20,29 +20,11 @@ export default function Header() {
   }
 
   return (
-    <header className="bg-white shadow-md">
-      <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
-        <Link href="/" className="text-xl font-bold text-gray-800">
+    <header className='fixed'>
+      <nav className="px-5 pt-2 flex items-center justify-start">
+        <Link href="/" className="p-2 px-4 text-3xl font-bold text-white bg-logo rounded-full drop-shadow-default">
           Tsunagu
         </Link>
-        <div>
-          {/* 読み込み完了後、ユーザーの有無で表示を切り替える */}
-          {user ? (
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-600">{user.email}</span>
-              <button
-                onClick={signOut}
-                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-300"
-              >
-                ログアウト
-              </button>
-            </div>
-          ) : (
-            <Link href="/login" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">
-              ログイン
-            </Link>
-          )}
-        </div>
       </nav>
     </header>
   );
