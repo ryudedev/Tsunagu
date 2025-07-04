@@ -1,6 +1,8 @@
+// サーバーサイド用
+import { type ResourcesConfig } from '@aws-amplify/core'
 import { Amplify } from 'aws-amplify';
 
-Amplify.configure({
+const config: ResourcesConfig = {
   Auth: {
     Cognito: {
       userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
@@ -9,11 +11,13 @@ Amplify.configure({
         oauth: {
           domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
           scopes: ['openid', 'email', 'profile', 'aws.cognito.signin.user.admin'],
-          redirectSignIn: [`${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`],
+          redirectSignIn: [`${process.env.NEXT_PUBLIC_APP_URL}/`],
           redirectSignOut: [`${process.env.NEXT_PUBLIC_APP_URL}/login`],
           responseType: 'code',
         },
       },
     },
   },
-}, { ssr: true });
+};
+
+Amplify.configure(config);

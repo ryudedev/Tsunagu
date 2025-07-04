@@ -1,27 +1,27 @@
-"use client";
+"use client"
 
-import { signInWithRedirect } from 'aws-amplify/auth';
+import { signInWithRedirect } from '@aws-amplify/auth';
 
-export default function FinalLoginPage() {
+export default function LoginPage() {
 
-  const handleGoogleLogin = async () => {
-    try {
-      // Googleログインを開始
-      await signInWithRedirect({ provider: 'Google' });
-    } catch (error) {
-      console.error('Error signing in with Google:', error);
-      alert(`ログイン中にエラーが発生しました: ${error}`);
-    }
-  };
+    const handleGoogleSignIn = async () => {
+        try {
+            await signInWithRedirect({
+                provider: 'Google'
+            });
+        } catch (error) {
+            console.error('Sign in error:', error);
+        }
+    };
 
-  return (
-    <label className="w-screen h-screen flex items-center justify-center cursor-pointer">
-        <button
-          onClick={handleGoogleLogin}
-          className="text-desc text-2xl cursor-pointer font-bold"
-        >
-          Googleでログイン
-        </button>
-    </label>
-  );
+    return (
+        <label className="cursor-pointer w-screen h-screen flex justify-center items-center">
+            <button
+                onClick={handleGoogleSignIn}
+                className="cursor-pointer text-desc text-3xl font-bold"
+            >
+                Googleでログイン
+            </button>
+        </label>
+    );
 }

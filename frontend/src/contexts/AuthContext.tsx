@@ -12,13 +12,14 @@ interface AuthState {
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
-
 export const AuthProvider = ({children}: {children: ReactNode}) => {
     const [user, setUser] = useState<FetchUserAttributesOutput | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
+    // セッションの確認関数
     const checkCurrentUser = async () => {
+        
         try {
             console.log("[AuthContext] Checking current user...");
             const currentUser = await getCurrentUser();
@@ -45,31 +46,25 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
             
             switch (payload.event) {
                 case 'signedIn':
-                    console.log("[AuthContext] User signed in");
                     checkCurrentUser();
                     break;
                 case 'signInWithRedirect':
-                    console.log("[AuthContext] Sign in with redirect completed");
                     checkCurrentUser();
                     break;
                 case 'signedOut':
-                    console.log("[AuthContext] User signed out");
                     setUser(null);
                     setIsLoading(false);
                     router.replace('/login');
                     break;
                 case 'signInWithRedirect_failure':
-                    console.log("[AuthContext] Sign in with redirect failed");
                     setUser(null);
                     setIsLoading(false);
                     router.replace('/login?error=oauth_failed');
                     break;
                 case 'tokenRefresh':
-                    console.log("[AuthContext] Token refreshed");
                     // トークンがリフレッシュされた場合は特に何もしない
                     break;
                 case 'tokenRefresh_failure':
-                    console.log("[AuthContext] Token refresh failed");
                     setUser(null);
                     setIsLoading(false);
                     break;
@@ -82,13 +77,11 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
         // 認証処理のタイムアウト設定を30秒に延長
         const timeoutId = setTimeout(() => {
             if (isLoading) {
-                console.log("[AuthContext] Authentication timeout - forcing loading to false");
                 setIsLoading(false);
             }
         }, 30000); // 15秒から30秒に変更
 
         return () => {
-            console.log("[AuthContext] Cleaning up Hub listener and timeout");
             hubListener();
             clearTimeout(timeoutId);
         };
@@ -96,11 +89,10 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
 
     const handleSignOut = async () => {
         try {
-            console.log("[AuthContext] Signing out user");
             setIsLoading(true);
             await signOut();
         } catch (error) {
-            console.error('[AuthContext] Sign out error:', error);
+            console.error('Sign out error:', error);
             setIsLoading(false);
         }
     };

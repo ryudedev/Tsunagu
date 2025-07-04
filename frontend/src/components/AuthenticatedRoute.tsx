@@ -13,18 +13,18 @@ export default function AuthenticatedRoute({ children }: AuthenticatedRouteProps
   const router = useRouter();
 
   useEffect(() => {
-    // 読み込みが完了し、かつユーザーがいない場合、ログインページにリダイレクト
+    // 読み込みが完了し、かつユーザーがいない場合
     if (!isLoading && !user) {
       router.push('/login');
     }
   }, [isLoading, user, router]);
 
-  // 読み込み中、またはユーザーがいる場合は、子コンポーネント（ページの本体）を表示
+  // 読み込み中、またはユーザーがいる場合
   if (isLoading || !user) {
-    // 読み込み中、またはリダイレクトが発生するまでの間、ローディング表示を見せる
+    // 読み込み中、またはリダイレクトが発生するまでの間
     return <div className="text-center p-8">読み込み中...</div>;
   }
 
-  // 認証済みの場合のみ、渡されたコンテンツを表示
+  // 認証済みの場合のみ
   return <>{children}</>;
 }
