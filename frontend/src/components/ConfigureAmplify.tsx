@@ -1,3 +1,5 @@
+// クライアントサイド用
+
 "use client"
 import { Amplify } from 'aws-amplify';
 
@@ -10,7 +12,7 @@ Amplify.configure({
         oauth: {
           domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
           scopes: ['openid', 'email', 'profile', 'aws.cognito.signin.user.admin'],
-          redirectSignIn: [`${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`],
+          redirectSignIn: [`${process.env.NEXT_PUBLIC_APP_URL}/`],
           redirectSignOut: [`${process.env.NEXT_PUBLIC_APP_URL}/login`],
           responseType: 'code',
         },
@@ -19,7 +21,7 @@ Amplify.configure({
   },
 }, { ssr: true });
 
-// このコンポーネントは設定を実行するだけで、何も画面には表示しません。
+// 設定のみ読み込ませたいため返り値はなし
 export default function ConfigureAmplify() {
   return null;
 }

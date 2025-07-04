@@ -1,10 +1,8 @@
-// layout.tsx
 import type { Metadata } from "next";
 import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
-import Header from "@/components/Header";
 import ConfigureAmplify from "@/components/ConfigureAmplify";
+import ConditionalAuthWrapper from "@/components/ConditionalAuthWrapper"
 
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
@@ -23,10 +21,9 @@ export default function RootLayout({
         suppressHydrationWarning={true}
       >
         <ConfigureAmplify />
-        <AuthProvider>
-          <Header />
+        <ConditionalAuthWrapper>
           <main>{children}</main>
-        </AuthProvider>
+        </ConditionalAuthWrapper>
       </body>
     </html>
   );

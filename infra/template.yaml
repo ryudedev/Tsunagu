@@ -90,10 +90,10 @@ Resources:
         - COGNITO
         - Google
       CallbackURLs:
-        - !Sub "${AppURL}/auth/callback"
-        - "http://localhost:3000/auth/callback"  # 開発環境用
-        - !Sub "${AppURL}/login"
-        - http://localhost:3000/login
+        - !Sub "${AppURL}/"
+        - "http://localhost:3000/"  # 開発環境用
+        # - !Sub "${AppURL}/login"
+        # - http://localhost:3000/login
       LogoutURLs:
         - !Sub "${AppURL}/login"
         - "http://localhost:3000/login"  # 開発環境用
