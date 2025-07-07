@@ -21,24 +21,17 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
     const checkCurrentUser = async () => {
         
         try {
-            console.log("[AuthContext] Checking current user...");
-            const currentUser = await getCurrentUser();
-            console.log("[AuthContext] Current user found:", currentUser.username);
-            
             const attributes = await fetchUserAttributes();
-            console.log("[AuthContext] User attributes fetched:", attributes);
             
             setUser(attributes);
             setIsLoading(false);
         } catch (error) {
-            console.log("[AuthContext] No current user or error:", error);
             setUser(null);
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        console.log("[AuthContext] Setting up Hub listener and initial auth check");
         
         // Hub リスナーを設定
         const hubListener = Hub.listen('auth', ({payload}) => {

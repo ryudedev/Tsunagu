@@ -12,10 +12,18 @@ Amplify.configure({
         oauth: {
           domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
           scopes: ['openid', 'email', 'profile', 'aws.cognito.signin.user.admin'],
-          redirectSignIn: [`${process.env.NEXT_PUBLIC_APP_URL}/`],
+          redirectSignIn: [`${process.env.NEXT_PUBLIC_APP_URL}`],
           redirectSignOut: [`${process.env.NEXT_PUBLIC_APP_URL}/login`],
           responseType: 'code',
         },
+      },
+    },
+  },
+  API: {
+    REST: {
+      tsunaguApi: {
+        endpoint: `${process.env.NEXT_PUBLIC_API_ENDPOINT}`,
+        region: `${process.env.NEXT_PUBLIC_AWS_REGION}`,
       },
     },
   },
