@@ -1,0 +1,60 @@
+openapi: "3.0.1"
+info:
+  title: "TsunaguApp-template"
+  version: "1.0"
+servers:
+- url: "https://n1h8xxu1y5.execute-api.ap-northeast-1.amazonaws.com/{basePath}"
+  variables:
+    basePath:
+      default: "Dev"
+paths:
+  /posts:
+    get:
+      security:
+      - TsunaguApiAuthorizer: []
+    post:
+      security:
+      - TsunaguApiAuthorizer: []
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      security:
+      - TsunaguApiAuthorizer: []
+  /ping:
+    get: {}
+    options:
+      responses:
+        "200":
+          description: "200 response"
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+          content: {}
+      security:
+      - TsunaguApiAuthorizer: []
+components:
+  securitySchemes:
+    TsunaguApiAuthorizer:
+      type: "apiKey"
+      name: "Authorization"
+      in: "header"
+      x-amazon-apigateway-authtype: "custom"
