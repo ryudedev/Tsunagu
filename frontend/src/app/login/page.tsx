@@ -3,6 +3,7 @@
 import Icon from '@/components/Icon';
 import { useAlert } from '@/contexts/AlertContext';
 import { signInWithRedirect } from '@aws-amplify/auth';
+import { useState } from 'react';
 
 /**
  * 認証ページを表示する初期ページです。
@@ -38,7 +39,7 @@ export default function LoginPage() {
                 'ログイン処理中に問題が発生しました。時間をおいて再度お試しいただくか、管理者にお問い合わせください。',
                 'error'
             );
-            
+
             setIsLoading(false);
         }
     };

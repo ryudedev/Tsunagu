@@ -15,7 +15,7 @@ Globals:
   Function:
     Timeout: 10
     Handler: app.lambda_handler
-    Runtime: python3.13
+    Runtime: python3.9
     LoggingConfig:
       LogFormat: JSON
     # 共通の環境変数をここに定義
@@ -23,19 +23,40 @@ Globals:
       Variables:
         POSTS_TABLE_NAME: !Ref PostsTable
         USER_POOL_ID: !Ref TsunaguUserPool
+  Api:
+    # グローバルなCORS設定
+    Cors:
+      AllowMethods: "'GET,POST,OPTIONS'"
+      AllowHeaders: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+      AllowOrigin: !Sub "'${AppURL}'" # <--- 変更点: パラメータを使用
+      AllowCredentials: true
+    # Gateway Response を追加してエラー時の CORS を設定
+    GatewayResponses:
+      UNAUTHORIZED:
+        StatusCode: 401
+        ResponseParameters:
+          Headers:
+            Access-Control-Allow-Origin: !Sub "'${AppURL}'" # <--- 変更点: パラメータを使用
+            Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+            Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+            Access-Control-Allow-Credentials: "'true'" # <--- 変更点: trueに設定
+      ACCESS_DENIED:
+        StatusCode: 403
+        ResponseParameters:
+          Headers:
+            Access-Control-Allow-Origin: !Sub "'${AppURL}'" # <--- 変更点: パラメータを使用
+            Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+            Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+            Access-Control-Allow-Credentials: "'true'" # <--- 変更点: trueに設定
 
 Resources:
   # Cognito
-  # 論理ID: TsunaguUserPool
-  # サービス: Cognito
-  # 説明: Cognito User Pool
   TsunaguUserPool:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: TsunaguUserPool
       UsernameAttributes:
         - email
-      # ユーザープールの詳細設定を追加
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -43,24 +64,17 @@ Resources:
           RequireLowercase: false
           RequireNumbers: false
           RequireSymbols: false
-      # アカウント回復設定
       AccountRecoverySetting:
         RecoveryMechanisms:
           - Name: verified_email
             Priority: 1
   
-  # 論理ID: TsunaguUserPoolDomain
-  # サービス: Cognito
-  # 説明: Cognitoのドメイン設定
   TsunaguUserPoolDomain:
     Type: AWS::Cognito::UserPoolDomain
     Properties:
-      Domain: !Sub "tsunagu-app-${AWS::AccountId}"
+      Domain: !Sub "tsunagu-app-${AWS::AccountId}-${AWS::Region}"
       UserPoolId: !Ref TsunaguUserPool
   
-  # 論理ID: TsunaguGoogleIdP
-  # サービス: Cognito
-  # 説明: Cognitoのプロバイダー設定
   TsunaguGoogleIdP:
     Type: AWS::Cognito::UserPoolIdentityProvider
     Properties:
@@ -76,9 +90,6 @@ Resources:
         username: "sub"
         name: "name"
 
-  # 論理ID: TsunaguUserPoolClient
-  # サービス: Cognito
-  # 説明: Cognito User Pool Client
   TsunaguUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     DependsOn: TsunaguGoogleIdP
@@ -90,13 +101,9 @@ Resources:
         - COGNITO
         - Google
       CallbackURLs:
-        - !Sub "${AppURL}/"
-        - "http://localhost:3000/"  # 開発環境用
-        # - !Sub "${AppURL}/login"
-        # - http://localhost:3000/login
+        - !Ref AppURL # <--- 変更点: パラメータを使用
       LogoutURLs:
         - !Sub "${AppURL}/login"
-        - "http://localhost:3000/login"  # 開発環境用
       AllowedOAuthFlows:
         - code
       AllowedOAuthScopes:
@@ -105,7 +112,6 @@ Resources:
         - profile
         - aws.cognito.signin.user.admin
       AllowedOAuthFlowsUserPoolClient: true
-      # トークンの有効期限設定
       RefreshTokenValidity: 30
       AccessTokenValidity: 60
       IdTokenValidity: 60
@@ -113,16 +119,18 @@ Resources:
         RefreshToken: days
         AccessToken: minutes
         IdToken: minutes
-      # その他の重要な設定
       PreventUserExistenceErrors: ENABLED
       ExplicitAuthFlows:
         - ALLOW_USER_SRP_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
+      WriteAttributes:
+        - email
+        - name
+      ReadAttributes:
+        - email
+        - name
 
   # DynamoDB
-  # 論理ID: PostsTable
-  # サービス: Cognito
-  # 説明: 投稿情報格納用データベース
   PostsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -136,17 +144,10 @@ Resources:
           KeyType: HASH
   
   # API Gateway
-  # 論理ID: TsunaguApiGateway
-  # サービス: API Gateway
-  # 説明: 
   TsunaguApiGateway:
     Type: AWS::Serverless::Api
     Properties:
       StageName: Dev
-      Cors:
-        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
-        AllowHeaders: "'Content-Type,Authorization'"
-        AllowOrigin: "'*'"
       Auth:
         DefaultAuthorizer: TsunaguApiAuthorizer
         Authorizers:
@@ -157,17 +158,19 @@ Resources:
                 - Authorization
 
   # Lambda
-  # 論理ID: ApiAuthorizerFunction
-  # Service: Lambda
-  # 説明: 認証用関数
   ApiAuthorizerFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/authorizer/
+      # <--- 変更点: ここから ---
+      Policies:
+        - Statement:
+          - Effect: Allow
+            Action:
+              - cognito-idp:GetUser
+            Resource: !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${TsunaguUserPool}"
+      # <--- 変更点: ここまで ---
 
-  # 論理ID: HelloWorldFunction
-  # サービス: Lambda
-  # 説明: 疎通確認用関数
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -184,9 +187,6 @@ Resources:
             Auth:
               Authorizer: NONE
 
-  # 論理ID: GetPostsFunction
-  # サービス: Lambda
-  # 説明: 投稿一覧取得用関数
   GetPostsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -203,10 +203,16 @@ Resources:
             RestApiId: !Ref TsunaguApiGateway
             Path: /posts
             Method: get
-
-  # 論理ID: CreatePostsFunction
-  # サービス: Lambda
-  # 説明: 投稿作成用関数
+            # DefaultAuthorizerが適用されるためAuthセクションは不要
+        PostsOptions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TsunaguApiGateway
+            Path: /posts
+            Method: options
+            Auth:
+              Authorizer: NONE
+            
   CreatePostsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -223,7 +229,8 @@ Resources:
             RestApiId: !Ref TsunaguApiGateway
             Path: /posts
             Method: post
-            # Authの記述がないため、デフォルトのTsunaguApiAuthorizerが適用される
+            # DefaultAuthorizerが適用されるためAuthセクションは不要
+        # <--- 変更点: グローバルのCORS設定と重複するため、手動のOPTIONSイベントは削除
 
 Outputs:
   TsunaguApiEndpoint:
@@ -240,13 +247,12 @@ Outputs:
 
   TsunaguUserPoolDomain:
     Description: "Cognito User Pool Domain"
-    Value: !Sub "https://tsunagu-app-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com"
+    Value: !Sub "https://tsunagu-app-${AWS::AccountId}-${AWS::Region}.auth.${AWS::Region}.amazoncognito.com"
 
-  # フロントエンド用の環境変数設定例
   EnvironmentVariables:
     Description: "Environment variables for frontend application"
     Value: !Sub |
       NEXT_PUBLIC_COGNITO_USER_POOL_ID=${TsunaguUserPool}
       NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=${TsunaguUserPoolClient}
-      NEXT_PUBLIC_COGNITO_DOMAIN=tsunagu-app-${AWS::AccountId}.auth.${AWS::Region}.amazoncognito.com
+      NEXT_PUBLIC_COGNITO_DOMAIN=tsunagu-app-${AWS::AccountId}-${AWS::Region}.auth.${AWS::Region}.amazoncognito.com
       NEXT_PUBLIC_APP_URL=${AppURL}
