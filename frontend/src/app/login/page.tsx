@@ -44,18 +44,22 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="w-screen h-screen flex flex-col justify-center items-center gap-4">
-            <div className="text-center">
-                <h1 className="text-3xl font-bold mb-4">ログイン</h1>
-                
-                <button
-                    onClick={handleGoogleSignIn}
-                    disabled={isLoading}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 disabled:opacity-50 flex items-center justify-center space-x-2 w-48"
-                >
-                    {isLoading ? <Icon.Loading className="h-5 w-5" /> : <span>Googleでログイン</span>}
-                </button>
-            </div>
-        </div>
+        <label
+            className={`relative w-screen h-screen flex flex-col justify-center items-center cursor-pointer`}
+        >
+            <button
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="font-bold text-3xl text-desc cursor-pointer hover:text-white"
+            >
+                {isLoading ? (
+                    <Icon.Loading className="h-5 w-5" />
+                ) : (
+                    <span
+                        className="animate-google-colors"
+                    >Googleでログイン</span>
+                )}
+            </button>
+        </label>
     );
 }
