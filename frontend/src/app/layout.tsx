@@ -3,6 +3,7 @@ import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import ConfigureAmplify from "@/components/ConfigureAmplify";
 import ConditionalAuthWrapper from "@/components/ConditionalAuthWrapper"
+import { AlertProvider } from "@/contexts/AlertContext";
 
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
@@ -20,9 +21,15 @@ export default function RootLayout({
         className={`${notoSansJP.variable} antialiased`}
         suppressHydrationWarning={true}
       >
+        {/* 【クライアント用】Amplify configureを読み込む */}
         <ConfigureAmplify />
+
+        {/* ConditionalAuthWrapperを読み込む */}
         <ConditionalAuthWrapper>
-          <main>{children}</main>
+          {/* AlertProviderを読み込む */}
+          <AlertProvider>
+            <main>{children}</main>
+          </AlertProvider>
         </ConditionalAuthWrapper>
       </body>
     </html>

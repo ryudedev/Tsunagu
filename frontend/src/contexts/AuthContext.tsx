@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useState, useEffect, useContext, ReactNode } from "react";
-import { getCurrentUser, fetchUserAttributes, signOut, type FetchUserAttributesOutput } from "@aws-amplify/auth";
+import { fetchUserAttributes, signOut, type FetchUserAttributesOutput } from "@aws-amplify/auth";
 import { Hub } from "aws-amplify/utils";
 import { useRouter } from "next/navigation";
 
@@ -11,13 +11,34 @@ interface AuthState {
     signOut: () => Promise<void>;
 }
 
+
 const AuthContext = createContext<AuthState | undefined>(undefined);
+
+/**
+ * AuthProviderを提供します。
+ * 
+ * @remarks
+ * ユーザー情報とローディング状態とサインアウト関数を保持し、ユーザーに提供します。
+ * 
+ * @param
+ * - children: コンテンツを表示するための引数
+ * 
+ * @returns AuthProvider用のJSX.Element
+ */
 export const AuthProvider = ({children}: {children: ReactNode}) => {
+    /** ユーザー情報を保持するstate */
     const [user, setUser] = useState<FetchUserAttributesOutput | null>(null);
+
+    /** ローディング状態を保持するstate */
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
-    // セッションの確認関数
+    /**
+     * 現在の認証ユーザーを確認するための関数
+     * 
+     * @remarks
+     * Amplify Authの`fetchUserAttributes`を使用して認証ユーザー属性を取得し、`user` stateに登録する。
+     */
     const checkCurrentUser = async () => {
         
         try {
@@ -37,6 +58,15 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
         }
     };
 
+     /**
+     * コンポーネントのマウント時に認証状態を確認し、Amplify Hubの認証イベントを監視します。
+     *
+     * @remarks
+     * - **初回実行**: `checkCurrentUser`を呼び出し、現在のセッション状態を確立します。
+     * - **イベントリッスン**: Amplifyの'auth'チャネルをリッスンし、`signedIn`や`signedOut`などのイベントに応じて状態を更新、またはページ遷移を実行します。
+     * - **タイムアウト処理**: 認証確認が長時間に及ぶ場合に備え、一定時間後にローディング状態を強制的に解除します。
+     * - **クリーンアップ**: コンポーネントのアンマウント時にHubリスナーとタイマーを解除します。
+     */
     useEffect(() => {
         console.log("[AuthContext] Setting up Hub listener and initial auth check");
         
@@ -87,12 +117,17 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
         };
     }, [router]);
 
+    /**
+     * サインアウト関数を提供するための関数
+     * 
+     * @remark
+     * Amplify Authの`signOut`を使ってユーザーの認証情報を破棄する。
+     */
     const handleSignOut = async () => {
         try {
             setIsLoading(true);
             await signOut();
         } catch (error) {
-            console.error('Sign out error:', error);
             setIsLoading(false);
         }
     };
@@ -104,6 +139,15 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
     );
 };
 
+/**
+ * AuthContextに簡単にアクセスするためのカスタムフックです。
+ *
+ * @remarks
+ * このフックは、必ず`AuthProvider`の内側で呼び出す必要があります。
+ * Providerの外で呼び出すと、実行時エラーがスローされます。
+ *
+ * @returns user, isLoading, signOutを含む認証状態オブジェクト。
+ */
 export const useAuth = (): AuthState => {
     const context = useContext(AuthContext);
     if (!context) {
