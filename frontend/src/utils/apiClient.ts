@@ -14,7 +14,6 @@ const getAuthToken = async (): Promise<string | null> => {
     const session = await fetchAuthSession();
     return session.tokens?.accessToken.toString() ?? null;
   } catch (error) {
-    console.log("Error getting auth token", error);
     return null;
   }
 };
@@ -38,9 +37,8 @@ const apiClient = {
     }
     
     // エンドポイントのURLは環境変数などから取得するのが望ましいですが、ここでは直接記述します
-    const endpoint = `https://xil1459751.execute-api.ap-northeast-1.amazonaws.com/Dev${path}`;
+    const endpoint = `${process.env.NEXT_PUBLIC_API_ENDPOINT}${path}`;
     
-    console.log(`[apiClient] GET: ${endpoint}`);
     const response = await fetch(endpoint, {
       method: 'GET',
       headers: {
@@ -60,9 +58,8 @@ const apiClient = {
       throw new Error("No authorization token found.");
     }
     
-    const endpoint = `https://xil1459751.execute-api.ap-northeast-1.amazonaws.com/Dev${path}`;
+    const endpoint = `${process.env.NEXT_PUBLIC_API_ENDPOINT}${path}`;
     
-    console.log(`[apiClient] POST: ${endpoint}`);
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {

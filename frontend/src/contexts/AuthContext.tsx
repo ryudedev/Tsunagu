@@ -65,7 +65,6 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
         
         // Hub リスナーを設定
         const hubListener = Hub.listen('auth', ({payload}) => {
-            console.log("[AuthContext] Hub event received:", payload.event);
             
             switch (payload.event) {
                 case 'signedIn':

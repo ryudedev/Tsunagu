@@ -30,11 +30,6 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            setIsLoading(true);
-            setError(null);
-            
-            console.log('Attempting Google sign in...');
-            
             await signInWithRedirect({
                 provider: 'Google'
             });
@@ -47,18 +42,6 @@ export default function LoginPage() {
 
             setIsLoading(false);
         }
-    };
-
-    // 直接 Cognito Hosted UI にリダイレクトする関数（デバッグ用）
-    const handleDirectHostedUI = () => {
-        const cognitoDomain = process.env.NEXT_PUBLIC_COGNITO_DOMAIN;
-        const clientId = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID;
-        const redirectUri = encodeURIComponent(window.location.origin);
-        
-        const hostedUIUrl = `https://${cognitoDomain}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=email+openid+profile&identity_provider=Google`;
-        
-        console.log('Hosted UI URL:', hostedUIUrl);
-        window.location.href = hostedUIUrl;
     };
 
     return (
