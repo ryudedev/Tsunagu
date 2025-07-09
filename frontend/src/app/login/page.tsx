@@ -1,13 +1,34 @@
 "use client"
 
+import Icon from '@/components/Icon';
+import { useAlert } from '@/contexts/AlertContext';
 import { signInWithRedirect } from '@aws-amplify/auth';
 import { useState } from 'react';
 
+/**
+ * 認証ページを表示する初期ページです。
+ * 
+ * @remarks
+ * このコンポーネントは、Googleによるソーシャルサインインを提供します。
+ * 
+ * @returns 認証画面のJSX.Element
+ */
 export default function LoginPage() {
+    /** ログインボタン押下後の状態を保持するstate */
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    /** アラート表示のための`showAlert`を読み込み */
+    const { showAlert } = useAlert();
 
+    /**
+     * Googleによるソーシャルサインイン処理を開始します。
+     * 
+     * @remarks
+     * Amplify Authの`signInWithRedirect`を呼び出し、Google認証ページにリダイレクトします。
+     * 失敗した場合は、ユーザーに分かりやすいエラーを表示し、開発者向けに詳細をログ出力します。
+     */
     const handleGoogleSignIn = async () => {
+        setIsLoading(true);
+
         try {
             setIsLoading(true);
             setError(null);
@@ -17,9 +38,13 @@ export default function LoginPage() {
             await signInWithRedirect({
                 provider: 'Google'
             });
-        } catch (error) {
-            console.error('Sign in error:', error);
-            setError(error instanceof Error ? error.message : 'Unknown error occurred');
+        } catch (_) {
+            showAlert(
+                'ログインエラー',
+                'ログイン処理中に問題が発生しました。時間をおいて再度お試しいただくか、管理者にお問い合わせください。',
+                'error'
+            );
+
             setIsLoading(false);
         }
     };
@@ -37,39 +62,22 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="w-screen h-screen flex flex-col justify-center items-center gap-4">
-            <div className="text-center">
-                <h1 className="text-3xl font-bold mb-4">ログイン</h1>
-                
-                {error && (
-                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                        エラー: {error}
-                    </div>
+        <label
+            className={`relative w-screen h-screen flex flex-col justify-center items-center cursor-pointer`}
+        >
+            <button
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+                className="font-bold text-3xl text-desc cursor-pointer hover:text-white"
+            >
+                {isLoading ? (
+                    <Icon.Loading className="h-5 w-5" />
+                ) : (
+                    <span
+                        className="animate-google-colors"
+                    >Googleでログイン</span>
                 )}
-                
-                <button
-                    onClick={handleGoogleSignIn}
-                    disabled={isLoading}
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 disabled:opacity-50"
-                >
-                    {isLoading ? 'ログイン中...' : 'Googleでログイン'}
-                </button>
-                
-                <br />
-                
-                <button
-                    onClick={handleDirectHostedUI}
-                    className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
-                >
-                    直接 Hosted UI にアクセス（デバッグ用）
-                </button>
-            </div>
-            
-            <div className="text-sm text-gray-600">
-                <p>デバッグ情報:</p>
-                <p>Domain: {process.env.NEXT_PUBLIC_COGNITO_DOMAIN}</p>
-                <p>Client ID: {process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID}</p>
-            </div>
-        </div>
+            </button>
+        </label>
     );
 }

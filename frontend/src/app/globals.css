@@ -13,12 +13,34 @@
   --color-foreground: var(--foreground);
   --color-logo: var(--primary);
   --color-desc: var(--description);
+  --color-google-blue: #4285F4;
+  --color-google-red: #DB4437;
+  --color-google-yellow: #F4B400;
+  --color-google-green: #0F9D58;
 
   /* Drop Shadow */
   --drop-shadow-default: 0 8px 24px rgba(149,157,165,0.2);
 
   /* Font Family */
   --font-noto: var(--font-noto-sans-jp);
+
+  /* Animation */
+  --animate-google-colors: google-colors 5s ease-in-out infinite;
+}
+
+@keyframes google-colors {
+  0%, 100% {
+    color: theme(colors.google-blue);
+  }
+  25% {
+    color: theme(colors.google-red);
+  }
+  50% {
+    color: theme(colors.google-yellow);
+  }
+  75% {
+    color: theme(colors.google-green);
+  }
 }
 
 @media (prefers-color-scheme: dark) {

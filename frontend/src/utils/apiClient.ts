@@ -1,6 +1,13 @@
 import { fetchAuthSession } from 'aws-amplify/auth';
 
-// --- トークン取得ロジック（page.tsxから移動） ---
+/**
+ * tokenの存在を検証する。
+ * 
+ * @remarks
+ * Amplify Authの`fetchAuthSession`でセッションを取得し、そのtokenを返します。
+ * 
+ * @returns tokenがある場合はtokenを、tokenがない場合はnullを返します。
+ */
 const getAuthToken = async (): Promise<string | null> => {
   try {
     // IDトークンではなく、アクセストークンを使用する方が一般的です
@@ -12,7 +19,17 @@ const getAuthToken = async (): Promise<string | null> => {
   }
 };
 
-// --- APIクライアント本体 ---
+/**
+ * apiとの接続を行う関数です。
+ * 
+ * @remarks
+ * postデータを取得するgetメソッドとpostデータを追加するpostメソッドがあります。
+ * 両者ともurlを引数として受け取りendpointを作成しendpointoに向けリクエストを送信する。その際tokenは必須となる。
+ * 
+ * @returns 
+ * - get: postデータをjsonとして返す。
+ * - post: 追加したpostデータをjsonとして返す。
+ */
 const apiClient = {
   get: async (path: string) => {
     const token = await getAuthToken();
