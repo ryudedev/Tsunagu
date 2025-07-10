@@ -26,8 +26,8 @@ export default function AuthComponent() {
   const handleSignIn = async () => {
     try {
       await signInWithRedirect({ provider: 'Google' });
-    } catch (error) {
-      console.error('Sign in error:', error);
+    } catch (_) {
+      showAlert("認証エラー", "サインインに失敗しました", "error")
     }
   };
 
@@ -45,7 +45,7 @@ export default function AuthComponent() {
       if (data) {
         setApiData(data)
       }
-    } catch (error) {
+    } catch (_) {
       showAlert("取得エラー", "投稿情報の取得に失敗しました", "error")
     }
   };
@@ -65,32 +65,35 @@ export default function AuthComponent() {
   }
 
   return (
-    <div className="p-4">
-      {user ? (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Welcome!</h2>
-          <p className="mb-4">User ID: {user.email}</p>
-          
+    <>
+      <div className="p-4">
+        {user ? (
           <div>
+            <h2 className="text-2xl font-bold mb-4">Welcome!</h2>
+            <p className="mb-4">User ID: {user.email}</p>
+            
+            <div>
+              <button 
+                onClick={signOut}
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Please sign in</h2>
             <button 
-              onClick={signOut}
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              onClick={handleSignIn}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
-              Sign Out
+              Sign In with Google
             </button>
           </div>
-        </div>
-      ) : (
-        <div>
-          <h2 className="text-2xl font-bold mb-4">Please sign in</h2>
-          <button 
-            onClick={handleSignIn}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Sign In with Google
-          </button>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+      <div className='fixed bottom-4 right-4 bg-logo text-white px-5 py-5 rounded-full text-2xl font-bold'>つながりを作る</div>
+    </>
   );
 }
