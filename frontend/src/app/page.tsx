@@ -68,20 +68,11 @@ export default function AuthComponent() {
   return (
     <>
       <Header filter={filter} setFilter={setFilter} />
-      <div className="p-4">
+      <div className="p-4 pt-20">
         {user ? (
-          <div>
+          <div className='flex flex-row justify-center'>
             <h2 className="text-2xl font-bold mb-4">Welcome!</h2>
-            <p className="mb-4">User ID: {user.email}</p>
-            
-            <div>
-              <button 
-                onClick={signOut}
-                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Sign Out
-              </button>
-            </div>
+            <div className='flex flex-col'></div>
           </div>
         ) : (
           <div>

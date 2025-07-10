@@ -4,6 +4,7 @@ import "./globals.css";
 import ConfigureAmplify from "@/components/ConfigureAmplify";
 import ConditionalAuthWrapper from "@/components/ConditionalAuthWrapper"
 import { AlertProvider } from "@/contexts/AlertContext";
+import { ModalProvider } from "@/contexts/ModalContext";
 
 const notoSansJP = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
@@ -28,7 +29,9 @@ export default function RootLayout({
         <ConditionalAuthWrapper>
           {/* AlertProviderを読み込む */}
           <AlertProvider>
-            <main>{children}</main>
+            <ModalProvider>
+              <main>{children}</main>
+            </ModalProvider>
           </AlertProvider>
         </ConditionalAuthWrapper>
       </body>
