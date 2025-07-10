@@ -4,6 +4,7 @@ import { signInWithRedirect } from 'aws-amplify/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import apiClient from '@/utils/apiClient';
+import { useAlert } from '@/contexts/AlertContext';
 
 /**
  * ユーザー認証と認証後のデータ表示を管理するメインコンポーネント
@@ -14,8 +15,8 @@ import apiClient from '@/utils/apiClient';
  */
 export default function AuthComponent() {
   const { user, isLoading, signOut } = useAuth();
+  const { showAlert } = useAlert();
   const [apiData, setApiData] = useState<any>(null);
-  const [fetchError, setFetchError] = useState<string | null>(null);
 
   /**
    * Googleによるソーシャルサインイン処理を開始します。
@@ -39,16 +40,13 @@ export default function AuthComponent() {
   const fetchApiData = async () => {
     if (!user) return;
 
-    setFetchError(null);
-
     try {
       const data = await apiClient.get("/posts")
       if (data) {
         setApiData(data)
       }
     } catch (error) {
-      console.error('Fetch error:', error);
-      setFetchError(error instanceof Error ? error.message : 'Unknown error occurred');
+      showAlert("取得エラー", "投稿情報の取得に失敗しました", "error")
     }
   };
 
@@ -81,21 +79,6 @@ export default function AuthComponent() {
               Sign Out
             </button>
           </div>
-
-          {fetchError && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-              <strong>Error:</strong> {fetchError}
-            </div>
-          )}
-
-          {apiData && (
-            <div className="bg-gray-100 p-4 rounded">
-              <h3 className="font-bold mb-2">API Data:</h3>
-              <pre className="text-sm overflow-auto">
-                {apiData ? JSON.stringify(apiData, null, 2) : 'No data'}
-              </pre>
-            </div>
-          )}
         </div>
       ) : (
         <div>
