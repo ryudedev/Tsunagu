@@ -2,10 +2,13 @@
 
 import { signInWithRedirect } from 'aws-amplify/auth';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import apiClient from '@/utils/apiClient';
 import { useAlert } from '@/contexts/AlertContext';
 import Header from '@/components/Header';
+import { useModal } from '@/contexts/ModalContext';
+import { usePostCreation } from '@/contexts/PostCreationContext';
+import { useRouter } from 'next/navigation';
 
 /**
  * ユーザー認証と認証後のデータ表示を管理するメインコンポーネント
@@ -17,8 +20,14 @@ import Header from '@/components/Header';
 export default function AuthComponent() {
   const { user, isLoading, signOut } = useAuth();
   const { showAlert } = useAlert();
+  const { showModal, hideModal } = useModal();
+  const { setTitle } = usePostCreation();
   const [apiData, setApiData] = useState<any>(null);
   const [filter, setFilter] = useState<string>("");
+  const [tempTitle, setTempTitle] = useState("");
+  const router = useRouter();
+  const [error, setError] = useState<string | null>("");
+
   /**
    * Googleによるソーシャルサインイン処理を開始します。
    * @remarks
@@ -51,6 +60,49 @@ export default function AuthComponent() {
     }
   };
 
+  const handleOpenCreateModal = () => {
+    const validateCheck = () => {
+      if(tempTitle.trim() == '') {
+        return true;
+      }
+      return false;
+    }
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+      const newTitle = e.target.value;
+
+      setTitle(newTitle);
+      if(tempTitle.trim() == '') {
+        setError('1文字以上で入力してください。')
+      } else {
+        setError(null)
+      }
+    }
+    const handleConfirm = () => {
+      setTitle(tempTitle);
+      hideModal();
+      if(tempTitle.trim() == '') {
+        showAlert("入力値エラー", "1文字以上で入力してください。", "error")
+      }
+      router.push('/create')
+    }
+    showModal(
+       <div>
+        <h2 className="text-2xl font-bold mb-4">タイトル<span className='text-red-600'>*</span></h2>
+        <input
+          type="text"
+          onChange={handleChange}
+          className='w-full p-4 outline outline-desc rounded-full focus:outline-2 focus:outline-logo'
+          placeholder='タイトル'
+        />
+        {error && <p className='text-red-500 text-sm mt-1 ml-4'>{error}</p>}
+      </div>,
+      {
+        confirmText: "確定",
+        onConfirm: handleConfirm
+      }
+    )
+  }
+
   /**
    * userオブジェクトが変更された（主にログインが完了した）際に、
    * APIからのデータ取得を自動的にトリガーします。
@@ -75,7 +127,7 @@ export default function AuthComponent() {
             <div className='flex flex-col'></div>
           </div>
         ) : (
-          <div>
+          <div className='hidden'>
             <h2 className="text-2xl font-bold mb-4">Please sign in</h2>
             <button 
               onClick={handleSignIn}
@@ -86,7 +138,10 @@ export default function AuthComponent() {
           </div>
         )}
       </div>
-      <div className='fixed bottom-4 right-4 bg-logo text-white px-5 py-5 rounded-full text-2xl font-bold'>つながりを作る</div>
+      <div
+        className='fixed bottom-4 right-4 bg-logo text-white px-5 py-5 rounded-full text-2xl font-bold'
+        onClick={handleOpenCreateModal}
+      >つながりを作る</div>
     </>
   );
 }

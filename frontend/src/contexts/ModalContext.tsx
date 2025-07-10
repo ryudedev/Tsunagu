@@ -4,10 +4,18 @@ import React, { createContext, useContext, useState, ReactNode, useCallback } fr
 import Modal from '@/components/Modal';
 
 /**
+ * showModal関数に渡すオプションの型定義です。
+ */
+interface ModalOptions {
+  confirmText?: string;
+  onConfirm?: () => void;
+}
+
+/**
  * ModalContextが提供する値の型定義です。
  */
 interface ModalContextType {
-  showModal: (content: ReactNode) => void;
+  showModal: (content: ReactNode, options?: ModalOptions) => void;
   hideModal: () => void;
 }
 
@@ -29,40 +37,50 @@ const ModalContext = createContext<ModalContextType | undefined>(undefined);
  */
 export function ModalProvider({ children }: { children: ReactNode }) {
   const [modalContent, setModalContent] = useState<ReactNode | null>(null);
+  /** モーダルのボタンなどのオプションを保持するstate */
+  const [modalOptions, setModalOptions] = useState<ModalOptions | null>(null);
 
   /**
    * モーダルを表示するためのコールバック関数です。
    *
    * @remarks
-   * この関数に渡されたReact要素（JSX）がモーダルの内容として表示されます。
+   * 表示したいJSXと、オプションとして確定ボタンのテキストや動作を指定できます。
    *
    * @param
    * - content: モーダル内に表示するReact要素
+   * - options: モーダルの設定（確定ボタンなど）
    *
    * @returns
    * なし (void)
    */
-  const showModal = useCallback((content: ReactNode) => {
+  const showModal = useCallback((content: ReactNode, options: ModalOptions = {}) => {
     setModalContent(content);
+    setModalOptions(options);
   }, []);
 
   /**
    * 表示されているモーダルを閉じるためのコールバック関数です。
    *
    * @remarks
-   * 背景のオーバーレイをクリックするか、モーダル内の閉じるボタンから呼び出されます。
+   * 背景のオーバーレイをクリックするか、モーダル内の閉じる/キャンセルボタンから呼び出されます。
    *
    * @returns
    * なし (void)
    */
   const hideModal = useCallback(() => {
     setModalContent(null);
+    setModalOptions(null);
   }, []);
 
   return (
     <ModalContext.Provider value={{ showModal, hideModal }}>
       {children}
-      <Modal isVisible={!!modalContent} onClose={hideModal}>
+      <Modal 
+        isVisible={!!modalContent} 
+        onClose={hideModal}
+        confirmText={modalOptions?.confirmText}
+        onConfirm={modalOptions?.onConfirm}
+      >
         {modalContent}
       </Modal>
     </ModalContext.Provider>
