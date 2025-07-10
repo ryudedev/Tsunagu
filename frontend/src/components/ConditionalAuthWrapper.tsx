@@ -36,7 +36,6 @@ export default function ConditionalAuthWrapper({ children }: ConditionalAuthWrap
   // 認証が必要なページの場合
   return (
     <AuthProvider>
-        <Header />
         {children}
     </AuthProvider>
   );

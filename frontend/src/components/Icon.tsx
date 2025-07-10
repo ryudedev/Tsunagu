@@ -2,7 +2,7 @@
 
 import React from 'react';
 // react-iconsから使用するアイコンのコンポーネントをインポートします
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { FaExclamationTriangle, FaSearch, FaSignOutAlt } from 'react-icons/fa';
 import { IoMdClose } from 'react-icons/io';
 import { CgSpinner } from 'react-icons/cg';
 import { FcGoogle } from 'react-icons/fc';
@@ -13,6 +13,7 @@ import { FcGoogle } from 'react-icons/fc';
  * classNameでtext-white, text-red-500などを指定して色を変更できます。
  */
 interface SvgIconProps {
+  size?: number;
   className?: string;
 }
 
@@ -30,8 +31,8 @@ const Icon = () => {
  * - className: css指定クラス
  * * @example <Icon.Error />
  */
-const ErrorIcon = ({ className }: SvgIconProps) => (
-  <FaExclamationTriangle className={className} />
+const ErrorIcon = ({ className, size }: SvgIconProps) => (
+  <FaExclamationTriangle className={className} size={size} />
 );
 
 
@@ -41,8 +42,8 @@ const ErrorIcon = ({ className }: SvgIconProps) => (
  * - className: css指定クラス
  * * @example <Icon.Close />
  */
-const CloseIcon = ({ className }: SvgIconProps) => (
-  <IoMdClose className={className} />
+const CloseIcon = ({ className, size }: SvgIconProps) => (
+  <IoMdClose className={className} size={size} />
 );
 
 /**
@@ -51,13 +52,38 @@ const CloseIcon = ({ className }: SvgIconProps) => (
  * - className: css指定クラス
  * * @example <Icon.Loading />
  */
-const LoadingIcon = ({ className }: SvgIconProps) => (
-  <CgSpinner className={`animate-spin ${className}`} />
+const LoadingIcon = ({ className, size }: SvgIconProps) => (
+  <CgSpinner className={`animate-spin ${className}`} size={size} />
 );
 
-// Googleアイコン用のコンポーネントを定義
-const GoogleIcon = ({ className }: SvgIconProps) => (
-  <FcGoogle className={className} />
+/**
+ * Google用の「google」アイコン
+ * * @param
+ * - className: css指定クラス
+ * * @example <Icon.Google />
+ */
+const GoogleIcon = ({ className, size }: SvgIconProps) => (
+  <FcGoogle className={className} size={size} />
+);
+
+/**
+ * 検索用の「search」アイコン
+ * * @param
+ * - className: css指定クラス
+ * * @example <Icon.Search />
+ */
+const SearchIcon = ({ className, size }: SvgIconProps) => (
+  <FaSearch className={className} size={size} />
+);
+
+/**
+ * サインアウト用の「signout」アイコン
+ * * @param
+ * - className: css指定クラス
+ * * @example <Icon.Signout />
+ */
+const SignoutIcon = ({ className, size }: SvgIconProps) => (
+  <FaSignOutAlt className={className} size={size} />
 );
 
 
@@ -67,6 +93,8 @@ const GoogleIcon = ({ className }: SvgIconProps) => (
 Icon.Error = ErrorIcon;
 Icon.Close = CloseIcon;
 Icon.Loading = LoadingIcon;
-Icon.Google = GoogleIcon; // Googleアイコンもアタッチ
+Icon.Google = GoogleIcon;
+Icon.Search = SearchIcon;
+Icon.Signout = SignoutIcon;
 
 export default Icon;

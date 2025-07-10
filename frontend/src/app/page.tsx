@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import apiClient from '@/utils/apiClient';
 import { useAlert } from '@/contexts/AlertContext';
+import Header from '@/components/Header';
 
 /**
  * ユーザー認証と認証後のデータ表示を管理するメインコンポーネント
@@ -17,7 +18,7 @@ export default function AuthComponent() {
   const { user, isLoading, signOut } = useAuth();
   const { showAlert } = useAlert();
   const [apiData, setApiData] = useState<any>(null);
-
+  const [filter, setFilter] = useState<string>("");
   /**
    * Googleによるソーシャルサインイン処理を開始します。
    * @remarks
@@ -66,6 +67,7 @@ export default function AuthComponent() {
 
   return (
     <>
+      <Header filter={filter} setFilter={setFilter} />
       <div className="p-4">
         {user ? (
           <div>
