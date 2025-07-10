@@ -30,14 +30,15 @@ const getAuthToken = async (): Promise<string | null> => {
  * - post: 追加したpostデータをjsonとして返す。
  */
 const apiClient = {
-  get: async (path: string) => {
+  get: async (path: string, params?: Record<string, any>) => {
     const token = await getAuthToken();
     if (!token) {
       throw new Error("No authorization token found.");
     }
     
-    // エンドポイントのURLは環境変数などから取得するのが望ましいですが、ここでは直接記述します
-    const endpoint = `${process.env.NEXT_PUBLIC_API_ENDPOINT}${path}`;
+    // パラメータをURLのクエリ文字列に変換
+    const queryString = params ? `?${new URLSearchParams(params).toString()}` : '';
+    const endpoint = `${process.env.NEXT_PUBLIC_API_ENDPOINT}${path}${queryString}`;
     
     const response = await fetch(endpoint, {
       method: 'GET',
